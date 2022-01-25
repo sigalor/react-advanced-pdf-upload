@@ -1,0 +1,40 @@
+{
+  "name": "react-advanced-pdf-upload",
+  "version": "1.0.0",
+  "description": "This library provides an easy-to-use React component for interactively creating a single PDF file out of several uploaded ones, with the possibility to concatenate, reorder, remove and rotate pages.",
+  "private": false,
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "npx babel ./src --out-dir ./dist --copy-files"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sigalor/react-advanced-pdf-upload.git"
+  },
+  "author": "sigalor",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sigalor/react-advanced-pdf-upload/issues"
+  },
+  "homepage": "https://github.com/sigalor/react-advanced-pdf-upload#readme",
+  "dependencies": {
+    "react-draggable": "^4.4.4",
+    "react-dropzone": "^11.5.1",
+    "react-feather": "^2.0.9",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.16.8",
+    "@babel/core": "^7.16.10",
+    "@babel/preset-env": "^7.16.11",
+    "@babel/preset-react": "^7.16.7",
+    "fs-extra": "^10.0.0",
+    "rimraf": "^3.0.2"
+  },
+  "peerDependencies": {
+    "react": "^16.14.0 || ^17.0.0",
+    "react-dom": "^16.14.0 || ^17.0.0",
+    "styled-components": "^5.0.0"
+  },
+  "main": "./dist/index.js"
+}
