@@ -1,6 +1,6 @@
 {
   "name": "react-advanced-pdf-upload",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "This library provides an easy-to-use React component for interactively creating a single PDF file out of several uploaded ones, with the possibility to concatenate, reorder, remove and rotate pages.",
   "private": false,
   "scripts": {
@@ -17,6 +17,12 @@
     "url": "https://github.com/sigalor/react-advanced-pdf-upload/issues"
   },
   "homepage": "https://github.com/sigalor/react-advanced-pdf-upload#readme",
+  "keywords": [
+    "react",
+    "pdf",
+    "pdf-editing",
+    "documents"
+  ],
   "dependencies": {
     "react-draggable": "^4.4.4",
     "react-dropzone": "^11.5.1",
