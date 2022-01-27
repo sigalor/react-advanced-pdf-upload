@@ -252,6 +252,7 @@ export default ({
   previewSpacing = 24,
   previewControlsHeight = 40,
   showPreviewAreaWhenEmpty = false,
+  defaultFilename = 'upload.pdf',
 }) => {
   const scrollbarHeight = 12;
   const actualPreviewAreaHeight = previewAreaHeight - previewAreaPadding * 2 - previewControlsHeight;
@@ -272,9 +273,12 @@ export default ({
         const file = acceptedFiles[fileIdx];
         const fileBase64 = await readFileToBase64(file);
 
-        const previews = (await loadPreviews({ file: fileBase64, resolution: previewResolution }))?.pages;
+        let previews;
+        try {
+          previews = (await loadPreviews({ file: fileBase64, resolution: previewResolution }))?.pages;
+        } catch (e) {}
         if (previews) {
-          newFiles.push({ pdf: fileBase64, previews });
+          newFiles.push({ pdf: fileBase64, name: file.name, previews });
           for (let pageIdx = 0; pageIdx < previews.length; pageIdx++) {
             newPages.push({
               id: uuidv4(),
@@ -328,11 +332,22 @@ export default ({
   const onBuildPdf = useCallback(async () => {
     if (buildPdfLoading) return;
     setBuildPdfLoading(true);
-    await buildPdf({
-      files: buildPdfData.files.map(f => f.pdf),
-      pages: buildPdfData.pages.map(p => ({ origin: p.origin, modifications: p.modifications })),
-    });
-    setBuildPdfLoading(false);
+
+    let name = defaultFilename;
+    const usedFileIds = [...new Set(buildPdfData.pages.map(p => p.origin.file))];
+    if (usedFileIds.length === 1) {
+      name = buildPdfData.files[usedFileIds[0]].name;
+    }
+
+    let buildPdfRet;
+    try {
+      buildPdfRet = await buildPdf({
+        files: buildPdfData.files.map(f => f.pdf),
+        pages: buildPdfData.pages.map(p => ({ origin: p.origin, modifications: p.modifications })),
+        name,
+      });
+    } catch (e) {}
+    if (!buildPdfRet) setBuildPdfLoading(false);
   }, [buildPdf, buildPdfData, buildPdfLoading]);
 
   // handle finalize button

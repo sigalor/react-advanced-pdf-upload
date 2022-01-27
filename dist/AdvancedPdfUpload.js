@@ -147,7 +147,8 @@ var _default = _ref => {
     previewAreaPadding = 16,
     previewSpacing = 24,
     previewControlsHeight = 40,
-    showPreviewAreaWhenEmpty = false
+    showPreviewAreaWhenEmpty = false,
+    defaultFilename = 'upload.pdf'
   } = _ref;
   var scrollbarHeight = 12;
   var actualPreviewAreaHeight = previewAreaHeight - previewAreaPadding * 2 - previewControlsHeight;
@@ -155,6 +156,7 @@ var _default = _ref => {
     files: [],
     pages: []
   });
+  var [filename, setFilename] = (0, _react.useState)(defaultFilename);
   var [previewsLoading, setPreviewsLoading] = (0, _react.useState)(false);
   var [buildPdfLoading, setBuildPdfLoading] = (0, _react.useState)(false);
   var [pageIdDragging, setPageIdDragging] = (0, _react.useState)(undefined);
@@ -166,18 +168,23 @@ var _default = _ref => {
       var newPages = [...buildPdfData.pages];
 
       for (var fileIdx = 0; fileIdx < acceptedFiles.length; fileIdx++) {
-        var _yield$loadPreviews;
-
         var file = acceptedFiles[fileIdx];
         var fileBase64 = yield readFileToBase64(file);
-        var previews = (_yield$loadPreviews = yield loadPreviews({
-          file: fileBase64,
-          resolution: previewResolution
-        })) === null || _yield$loadPreviews === void 0 ? void 0 : _yield$loadPreviews.pages;
+        var previews = void 0;
+
+        try {
+          var _yield$loadPreviews;
+
+          previews = (_yield$loadPreviews = yield loadPreviews({
+            file: fileBase64,
+            resolution: previewResolution
+          })) === null || _yield$loadPreviews === void 0 ? void 0 : _yield$loadPreviews.pages;
+        } catch (e) {}
 
         if (previews) {
           newFiles.push({
             pdf: fileBase64,
+            name: file.name,
             previews
           });
 
@@ -251,14 +258,27 @@ var _default = _ref => {
   var onBuildPdf = (0, _react.useCallback)( /*#__PURE__*/_asyncToGenerator(function* () {
     if (buildPdfLoading) return;
     setBuildPdfLoading(true);
-    yield buildPdf({
-      files: buildPdfData.files.map(f => f.pdf),
-      pages: buildPdfData.pages.map(p => ({
-        origin: p.origin,
-        modifications: p.modifications
-      }))
-    });
-    setBuildPdfLoading(false);
+    var name = defaultFilename;
+    var usedFileIds = [...new Set(buildPdfData.pages.map(p => p.origin.file))];
+
+    if (usedFileIds.length === 1) {
+      name = buildPdfData.files[usedFileIds[0]].name;
+    }
+
+    var buildPdfRet;
+
+    try {
+      buildPdfRet = yield buildPdf({
+        files: buildPdfData.files.map(f => f.pdf),
+        pages: buildPdfData.pages.map(p => ({
+          origin: p.origin,
+          modifications: p.modifications
+        })),
+        name
+      });
+    } catch (e) {}
+
+    if (!buildPdfRet) setBuildPdfLoading(false);
   }), [buildPdf, buildPdfData, buildPdfLoading]); // handle finalize button
 
   (0, _react.useEffect)(() => {
