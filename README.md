@@ -22,51 +22,71 @@ npm install react-advanced-pdf-upload
 
 After this, the most minimal usage of the `AdvancedPdfUpload` component looks like this:
 
-```javascript
-<AdvancedPdfUpload
-  components={{
-    dropzonePlaceholder: <p>Drag and drop PDF files here or click to select files.</p>,
-    loading: <p>Loading...</p>,
-    pageNumber: ({ n }) => <i>{n}</i>,
-    finalizeButton: ({ loading, onClick, disabled }) => (
-      <button onClick={onClick} disabled={loading || disabled} style={{ marginTop: '1rem' }}>
-        Finalize
+```jsx
+import React, { useRef, useState } from 'react';
+import AdvancedPdfUpload from 'react-advanced-pdf-upload';
+
+export default () => {
+  const finalizeButtonRef = useRef(null);
+  const [finalizeButtonLoading, setFinalizeButtonLoading] = useState(false);
+  const [finalizeButtonDisabled, setFinalizeButtonDisabled] = useState(false);
+
+  return (
+    <>
+      <AdvancedPdfUpload
+        components={{
+          dropzonePlaceholder: <p>Drag and drop PDF files here or click to select files.</p>,
+          loading: <p>Loading...</p>,
+          pageNumber: ({ n }) => <i>{n}</i>,
+        }}
+        finalizeButton={{
+          ref: finalizeButtonRef,
+          setLoading: setFinalizeButtonLoading,
+          setDisabled: setFinalizeButtonDisabled,
+        }}
+        loadPreviews={async data => {
+          const res = await fetch('http://localhost:3001/render-pdf', {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+          }).catch(e => console.error(e));
+
+          if (res && res.status >= 200 && res.status < 299) {
+            return await res.json();
+          } else {
+            console.error(res);
+          }
+        }}
+        buildPdf={async data => {
+          const res = await fetch('http://localhost:3001/build-pdf', {
+            method: 'POST',
+            headers: {
+              Accept: 'application/pdf',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+          }).catch(e => console.error(e));
+
+          if (res && res.status >= 200 && res.status < 299) {
+            // do something with the finalized PDF file, e.g. let the user download it
+          } else {
+            console.error(res);
+          }
+        }}
+      />
+      <button
+        ref={finalizeButtonRef}
+        disabled={finalizeButtonLoading || finalizeButtonDisabled}
+        style={{ marginTop: '0.5rem' }}
+      >
+        {finalizeButtonLoading ? 'Loading...' : 'Finalize'}
       </button>
-    ),
-  }}
-  loadPreviews={async data => {
-    const res = await fetch('http://localhost:3001/render-pdf', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    }).catch(e => console.error(e));
-
-    if (res && res.status >= 200 && res.status < 299) {
-      return await res.json();
-    } else {
-      console.error(res);
-    }
-  }}
-  buildPdf={async data => {
-    const res = await fetch('http://localhost:3001/build-pdf', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/pdf',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    }).catch(e => console.error(e));
-
-    if (res && res.status >= 200 && res.status < 299) {
-      // do something with the finalized PDF file, e.g. let the user download it
-    } else {
-      console.error(res);
-    }
-  }}
-/>
+    </>
+  );
+};
 ```
 
 This code renders something like the following:
@@ -83,16 +103,18 @@ In the bottom area, you can easily drag-and-drop the pages around and remove or 
 
 The `AdvancedPdfUpload` component expects the following parameters, which have been designed for maximum customizability:
 
-| Parameter name        | Type     | Description                                                                                                                                                                                                                                                                                                                                             | Optional | Default value |
-| --------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------- |
-| components            | object   | The additional frontend components with which `AdvancedPdfUpload` is populated. See [here](https://github.com/sigalor/react-advanced-pdf-upload-demo/blob/main/src/App.js#L28-L45) for an example of all its properties.                                                                                                                                | No       |               |
-| previewResolution     | integer  | The resolution for PDF page previews in PPI (pixels per inch).                                                                                                                                                                                                                                                                                          | Yes      | 100           |
-| previewAreaHeight     | integer  | The height of the entire page preview area in pixels.                                                                                                                                                                                                                                                                                                   | Yes      | 240           |
-| previewAreaPadding    | integer  | The inner padding of the preview area in pixels.                                                                                                                                                                                                                                                                                                        | Yes      | 16            |
-| previewSpacing        | integer  | The distance between two page previews in pixels.                                                                                                                                                                                                                                                                                                       | Yes      | 24            |
-| previewControlsHeight | integer  | The height of the page preview controls (for page numbers and rotation buttons) in pixels.                                                                                                                                                                                                                                                              | Yes      | 40            |
-| loadPreviews          | function | The callback for loading page previews. Gets an object according to [this schema](https://github.com/sigalor/react-advanced-pdf-upload-backend/blob/main/src/schemas/render-pdf.json) as parameter. Should return the rendered pages according to [this type](https://github.com/sigalor/react-advanced-pdf-upload-backend/blob/main/src/types.ts#L24). | No       |               |
-| buildPdf              | function | The callback that is called once the user clicks the finalize button with an object according to [this schema](https://github.com/sigalor/react-advanced-pdf-upload-backend/blob/main/src/schemas/build-pdf.json).                                                                                                                                      | No       |               |
+| Parameter name           | Type     | Description                                                                                                                                                                                                                                                                                                                                             | Optional | Default value |
+| ------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------- |
+| components               | object   | The additional frontend components with which `AdvancedPdfUpload` is populated. See [here](https://github.com/sigalor/react-advanced-pdf-upload-demo/blob/main/src/App.js#L28-L45) for an example of all its properties.                                                                                                                                | No       |               |
+| finalizeButton           | object   | An object with the properties `ref` (required), `setLoading` (optional) and `setDisabled` to control the finalize button.                                                                                                                                                                                                                               | No       |               |
+| previewResolution        | integer  | The resolution for PDF page previews in PPI (pixels per inch).                                                                                                                                                                                                                                                                                          | Yes      | 100           |
+| previewAreaHeight        | integer  | The height of the entire page preview area in pixels.                                                                                                                                                                                                                                                                                                   | Yes      | 240           |
+| previewAreaPadding       | integer  | The inner padding of the preview area in pixels.                                                                                                                                                                                                                                                                                                        | Yes      | 16            |
+| previewSpacing           | integer  | The distance between two page previews in pixels.                                                                                                                                                                                                                                                                                                       | Yes      | 24            |
+| previewControlsHeight    | integer  | The height of the page preview controls (for page numbers and rotation buttons) in pixels.                                                                                                                                                                                                                                                              | Yes      | 40            |
+| loadPreviews             | function | The callback for loading page previews. Gets an object according to [this schema](https://github.com/sigalor/react-advanced-pdf-upload-backend/blob/main/src/schemas/render-pdf.json) as parameter. Should return the rendered pages according to [this type](https://github.com/sigalor/react-advanced-pdf-upload-backend/blob/main/src/types.ts#L24). | No       |               |
+| buildPdf                 | function | The callback that is called once the user clicks the finalize button with an object according to [this schema](https://github.com/sigalor/react-advanced-pdf-upload-backend/blob/main/src/schemas/build-pdf.json).                                                                                                                                      | No       |               |
+| showPreviewAreaWhenEmpty | boolean  | Whether the area with the page previews shall be shown (i.e. just take up empty space) even when no pages are there yet.                                                                                                                                                                                                                                | No       | false         |
 
 ## License
 

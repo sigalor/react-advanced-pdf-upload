@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useDropzone } from 'react-dropzone';
 import { RotateCcw, RotateCw, X } from 'react-feather';
@@ -243,6 +243,7 @@ function calculatePreviewPosition(previewDimensions, pageIdx, previewSpacing) {
 
 export default ({
   components,
+  finalizeButton,
   loadPreviews,
   buildPdf,
   previewResolution = 100,
@@ -250,6 +251,7 @@ export default ({
   previewAreaPadding = 16,
   previewSpacing = 24,
   previewControlsHeight = 40,
+  showPreviewAreaWhenEmpty = false,
 }) => {
   const scrollbarHeight = 12;
   const actualPreviewAreaHeight = previewAreaHeight - previewAreaPadding * 2 - previewControlsHeight;
@@ -322,7 +324,6 @@ export default ({
   };
 
   const PageNumber = components.pageNumber ?? (() => null);
-  const FinalizeButton = components.finalizeButton ?? (() => null);
 
   const onBuildPdf = useCallback(async () => {
     if (buildPdfLoading) return;
@@ -334,6 +335,29 @@ export default ({
     setBuildPdfLoading(false);
   }, [buildPdf, buildPdfData, buildPdfLoading]);
 
+  // handle finalize button
+  useEffect(() => {
+    const btn = finalizeButton.ref?.current;
+    if (btn) {
+      btn.addEventListener('click', onBuildPdf);
+      return () => {
+        btn.removeEventListener('click', onBuildPdf);
+      };
+    }
+  }, [finalizeButton.ref, onBuildPdf]);
+
+  useEffect(() => {
+    if (finalizeButton.setLoading) {
+      finalizeButton.setLoading(buildPdfLoading);
+    }
+  }, [finalizeButton.setLoading, buildPdfLoading]);
+
+  useEffect(() => {
+    if (finalizeButton.setDisabled) {
+      finalizeButton.setDisabled(buildPdfData.pages.length === 0);
+    }
+  }, [finalizeButton.setDisabled, buildPdfData.pages.length]);
+
   return (
     <Wrapper>
       <Dropzone
@@ -344,165 +368,165 @@ export default ({
         <input {...getInputProps()} />
         {previewsLoading ? components.loading ?? null : components.dropzonePlaceholder ?? null}
       </Dropzone>
-      {components.uploadedPagesHeading ?? null}
-      <UploadedPages
-        style={{
-          height: previewAreaHeight + 'px',
-          padding: `${previewAreaPadding}px ${previewAreaPadding}px ${
-            previewAreaPadding - scrollbarHeight
-          }px ${previewAreaPadding}px`,
-        }}
-      >
-        <UploadedPagesInner>
-          {buildPdfData.pages.map((page, pageIdx) => {
-            const preview = buildPdfData.files[page.origin.file].previews[page.origin.page];
-            const calculatedPosition = calculatedPreviewPositions[pageIdx];
-            const calculatedDimensions = calculatedPreviewDimensions[pageIdx];
+      {showPreviewAreaWhenEmpty || buildPdfData.pages.length > 0 ? components.uploadedPagesHeading ?? null : null}
+      {showPreviewAreaWhenEmpty || buildPdfData.pages.length > 0 ? (
+        <UploadedPages
+          style={{
+            height: previewAreaHeight + 'px',
+            padding: `${previewAreaPadding}px ${previewAreaPadding}px ${
+              previewAreaPadding - scrollbarHeight
+            }px ${previewAreaPadding}px`,
+          }}
+        >
+          <UploadedPagesInner>
+            {buildPdfData.pages.map((page, pageIdx) => {
+              const preview = buildPdfData.files[page.origin.file].previews[page.origin.page];
+              const calculatedPosition = calculatedPreviewPositions[pageIdx];
+              const calculatedDimensions = calculatedPreviewDimensions[pageIdx];
 
-            return (
-              <Draggable
-                key={JSON.stringify(page.origin)}
-                axis="x"
-                position={pageIdDragging === page.id ? page.position : calculatedPosition}
-                onDrag={(e, position) => {
-                  const newPosition = { x: position.x, y: calculatedPosition.y };
-                  const newMidpoint = position.x + calculatedDimensions.width / 2;
-                  const newPages = buildPdfData.pages.map((p, i) =>
-                    i === pageIdx ? { ...p, position: newPosition } : p,
-                  );
+              return (
+                <Draggable
+                  key={JSON.stringify(page.origin)}
+                  axis="x"
+                  position={pageIdDragging === page.id ? page.position : calculatedPosition}
+                  onDrag={(e, position) => {
+                    const newPosition = { x: position.x, y: calculatedPosition.y };
+                    const newMidpoint = position.x + calculatedDimensions.width / 2;
+                    const newPages = buildPdfData.pages.map((p, i) =>
+                      i === pageIdx ? { ...p, position: newPosition } : p,
+                    );
 
-                  // look for the leftmost preview whose midpoint has been exceeded while moving to the left hand side
-                  let draggedPage = false;
-                  for (let i = 0; i < pageIdx; i++) {
-                    if (calculatedPreviewMidpoints[i] > newMidpoint) {
-                      const [currentPage] = newPages.splice(pageIdx, 1);
-                      newPages.splice(i, 0, currentPage);
-                      draggedPage = true;
-                      break;
-                    }
-                  }
-
-                  // if no such preview was found, look for the rightmost one
-                  if (!draggedPage) {
-                    for (let i = buildPdfData.pages.length - 1; i > pageIdx; i--) {
-                      if (calculatedPreviewMidpoints[i] < newMidpoint) {
+                    // look for the leftmost preview whose midpoint has been exceeded while moving to the left hand side
+                    let draggedPage = false;
+                    for (let i = 0; i < pageIdx; i++) {
+                      if (calculatedPreviewMidpoints[i] > newMidpoint) {
                         const [currentPage] = newPages.splice(pageIdx, 1);
                         newPages.splice(i, 0, currentPage);
+                        draggedPage = true;
                         break;
                       }
                     }
-                  }
 
-                  setBuildPdfData({
-                    files: buildPdfData.files,
-                    pages: newPages,
-                  });
-                }}
-                onStart={() => {
-                  setBuildPdfData({
-                    files: buildPdfData.files,
-                    pages: buildPdfData.pages.map((p, i) =>
-                      i === pageIdx ? { ...p, position: calculatedPosition } : p,
-                    ),
-                  });
-                  setPageIdDragging(page.id);
-                }}
-                onStop={() => {
-                  setPageIdDragging(undefined);
-                  setLastPageIdDragged(page.id);
-                }}
-              >
-                <UploadedPageOuter
-                  className={
-                    (pageIdDragging === page.id ? 'dragging' : '') +
-                    ' ' +
-                    (lastPageIdDragged === page.id ? 'last-dragged' : '') +
-                    ' ' +
-                    (page.disappeared ? 'disappeared' : '')
-                  }
+                    // if no such preview was found, look for the rightmost one
+                    if (!draggedPage) {
+                      for (let i = buildPdfData.pages.length - 1; i > pageIdx; i--) {
+                        if (calculatedPreviewMidpoints[i] < newMidpoint) {
+                          const [currentPage] = newPages.splice(pageIdx, 1);
+                          newPages.splice(i, 0, currentPage);
+                          break;
+                        }
+                      }
+                    }
+
+                    setBuildPdfData({
+                      files: buildPdfData.files,
+                      pages: newPages,
+                    });
+                  }}
+                  onStart={() => {
+                    setBuildPdfData({
+                      files: buildPdfData.files,
+                      pages: buildPdfData.pages.map((p, i) =>
+                        i === pageIdx ? { ...p, position: calculatedPosition } : p,
+                      ),
+                    });
+                    setPageIdDragging(page.id);
+                  }}
+                  onStop={() => {
+                    setPageIdDragging(undefined);
+                    setLastPageIdDragged(page.id);
+                  }}
                 >
-                  <UploadedPageOuter2>
-                    <UploadedPage
-                      style={{
-                        cursor: pageIdDragging === page.id ? 'move' : 'auto',
-                      }}
-                    >
-                      <UploadedPageInner>
-                        <PreviewImgContainer
-                          style={{
-                            width: calculatedDimensions.width + 'px',
-                            height: calculatedDimensions.height + 'px',
-                          }}
-                        >
-                          <PreviewImg
-                            alt=""
-                            src={preview.uri}
+                  <UploadedPageOuter
+                    className={
+                      (pageIdDragging === page.id ? 'dragging' : '') +
+                      ' ' +
+                      (lastPageIdDragged === page.id ? 'last-dragged' : '') +
+                      ' ' +
+                      (page.disappeared ? 'disappeared' : '')
+                    }
+                  >
+                    <UploadedPageOuter2>
+                      <UploadedPage
+                        style={{
+                          cursor: pageIdDragging === page.id ? 'move' : 'auto',
+                        }}
+                      >
+                        <UploadedPageInner>
+                          <PreviewImgContainer
                             style={{
-                              width: calculatedDimensions.unrotatedWidth + 'px',
-                              height: calculatedDimensions.unrotatedHeight + 'px',
-                              transform: `rotate(${calculatedDimensions.rotation}deg)`,
+                              width: calculatedDimensions.width + 'px',
+                              height: calculatedDimensions.height + 'px',
                             }}
-                            draggable="false"
-                            onDragStart={e => e.preventDefault()}
-                          />
-                        </PreviewImgContainer>
+                          >
+                            <PreviewImg
+                              alt=""
+                              src={preview.uri}
+                              style={{
+                                width: calculatedDimensions.unrotatedWidth + 'px',
+                                height: calculatedDimensions.unrotatedHeight + 'px',
+                                transform: `rotate(${calculatedDimensions.rotation}deg)`,
+                              }}
+                              draggable="false"
+                              onDragStart={e => e.preventDefault()}
+                            />
+                          </PreviewImgContainer>
 
-                        <PageRemoveButton
+                          <PageRemoveButton
+                            onMouseDown={e => e.stopPropagation()}
+                            onClick={() => {
+                              setBuildPdfData({
+                                files: buildPdfData.files,
+                                pages: buildPdfData.pages.map((p, i) =>
+                                  i === pageIdx ? { ...p, disappeared: true } : p,
+                                ),
+                              });
+
+                              setTimeout(
+                                () =>
+                                  setBuildPdfData({
+                                    files: buildPdfData.files,
+                                    pages: buildPdfData.pages.filter((_, i) => i !== pageIdx),
+                                  }),
+                                300,
+                              );
+                            }}
+                          >
+                            <X color="white" size="1rem" />
+                          </PageRemoveButton>
+                        </UploadedPageInner>
+                      </UploadedPage>
+
+                      <PreviewControls
+                        style={{
+                          height: previewControlsHeight + 'px',
+                        }}
+                      >
+                        <RotateButton
                           onMouseDown={e => e.stopPropagation()}
-                          onClick={() => {
-                            setBuildPdfData({
-                              files: buildPdfData.files,
-                              pages: buildPdfData.pages.map((p, i) =>
-                                i === pageIdx ? { ...p, disappeared: true } : p,
-                              ),
-                            });
-
-                            setTimeout(
-                              () =>
-                                setBuildPdfData({
-                                  files: buildPdfData.files,
-                                  pages: buildPdfData.pages.filter((_, i) => i !== pageIdx),
-                                }),
-                              300,
-                            );
-                          }}
+                          onClick={() => addPageModification(pageIdx, { type: 'rotate', degrees: -90 })}
                         >
-                          <X color="white" size="1rem" />
-                        </PageRemoveButton>
-                      </UploadedPageInner>
-                    </UploadedPage>
-
-                    <PreviewControls
-                      style={{
-                        height: previewControlsHeight + 'px',
-                      }}
-                    >
-                      <RotateButton
-                        onMouseDown={e => e.stopPropagation()}
-                        onClick={() => addPageModification(pageIdx, { type: 'rotate', degrees: -90 })}
-                      >
-                        <RotateCcw color="#888" size="0.8rem" />
-                      </RotateButton>
-                      <span style={{ margin: '0 1rem' }}>
-                        <PageNumber n={pageIdx + 1} />
-                      </span>
-                      <RotateButton
-                        onMouseDown={e => e.stopPropagation()}
-                        onClick={() => addPageModification(pageIdx, { type: 'rotate', degrees: 90 })}
-                      >
-                        <RotateCw color="#888" size="0.8rem" />
-                      </RotateButton>
-                    </PreviewControls>
-                  </UploadedPageOuter2>
-                </UploadedPageOuter>
-              </Draggable>
-            );
-          })}
-        </UploadedPagesInner>
-        {previewsLoading || buildPdfLoading ? <UploadedPagesInteractionBlocker /> : null}
-      </UploadedPages>
-
-      <FinalizeButton loading={buildPdfLoading} disabled={buildPdfData.pages.length === 0} onClick={onBuildPdf} />
+                          <RotateCcw color="#888" size="0.8rem" />
+                        </RotateButton>
+                        <span style={{ margin: '0 1rem' }}>
+                          <PageNumber n={pageIdx + 1} />
+                        </span>
+                        <RotateButton
+                          onMouseDown={e => e.stopPropagation()}
+                          onClick={() => addPageModification(pageIdx, { type: 'rotate', degrees: 90 })}
+                        >
+                          <RotateCw color="#888" size="0.8rem" />
+                        </RotateButton>
+                      </PreviewControls>
+                    </UploadedPageOuter2>
+                  </UploadedPageOuter>
+                </Draggable>
+              );
+            })}
+          </UploadedPagesInner>
+          {previewsLoading || buildPdfLoading ? <UploadedPagesInteractionBlocker /> : null}
+        </UploadedPages>
+      ) : null}
     </Wrapper>
   );
 };

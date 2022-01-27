@@ -135,17 +135,19 @@ function calculatePreviewPosition(previewDimensions, pageIdx, previewSpacing) {
 }
 
 var _default = _ref => {
-  var _components$pageNumbe, _components$finalizeB, _components$loading, _components$dropzoneP, _components$uploadedP;
+  var _components$pageNumbe, _components$loading, _components$dropzoneP, _components$uploadedP;
 
   var {
     components,
+    finalizeButton,
     loadPreviews,
     buildPdf,
     previewResolution = 100,
     previewAreaHeight = 240,
     previewAreaPadding = 16,
     previewSpacing = 24,
-    previewControlsHeight = 40
+    previewControlsHeight = 40,
+    showPreviewAreaWhenEmpty = false
   } = _ref;
   var scrollbarHeight = 12;
   var actualPreviewAreaHeight = previewAreaHeight - previewAreaPadding * 2 - previewControlsHeight;
@@ -244,7 +246,6 @@ var _default = _ref => {
   };
 
   var PageNumber = (_components$pageNumbe = components.pageNumber) !== null && _components$pageNumbe !== void 0 ? _components$pageNumbe : () => null;
-  var FinalizeButton = (_components$finalizeB = components.finalizeButton) !== null && _components$finalizeB !== void 0 ? _components$finalizeB : () => null;
   var onBuildPdf = (0, _react.useCallback)( /*#__PURE__*/_asyncToGenerator(function* () {
     if (buildPdfLoading) return;
     setBuildPdfLoading(true);
@@ -256,10 +257,33 @@ var _default = _ref => {
       }))
     });
     setBuildPdfLoading(false);
-  }), [buildPdf, buildPdfData, buildPdfLoading]);
+  }), [buildPdf, buildPdfData, buildPdfLoading]); // handle finalize button
+
+  (0, _react.useEffect)(() => {
+    var _finalizeButton$ref;
+
+    var btn = (_finalizeButton$ref = finalizeButton.ref) === null || _finalizeButton$ref === void 0 ? void 0 : _finalizeButton$ref.current;
+
+    if (btn) {
+      btn.addEventListener('click', onBuildPdf);
+      return () => {
+        btn.removeEventListener('click', onBuildPdf);
+      };
+    }
+  }, [finalizeButton.ref, onBuildPdf]);
+  (0, _react.useEffect)(() => {
+    if (finalizeButton.setLoading) {
+      finalizeButton.setLoading(buildPdfLoading);
+    }
+  }, [finalizeButton.setLoading, buildPdfLoading]);
+  (0, _react.useEffect)(() => {
+    if (finalizeButton.setDisabled) {
+      finalizeButton.setDisabled(buildPdfData.pages.length === 0);
+    }
+  }, [finalizeButton.setDisabled, buildPdfData.pages.length]);
   return /*#__PURE__*/_react.default.createElement(Wrapper, null, /*#__PURE__*/_react.default.createElement(Dropzone, getRootProps({
     className: (previewsLoading || buildPdfLoading ? 'disabled' : '') + (isDragActive ? ' drag-active' : '')
-  }), /*#__PURE__*/_react.default.createElement("input", getInputProps()), previewsLoading ? (_components$loading = components.loading) !== null && _components$loading !== void 0 ? _components$loading : null : (_components$dropzoneP = components.dropzonePlaceholder) !== null && _components$dropzoneP !== void 0 ? _components$dropzoneP : null), (_components$uploadedP = components.uploadedPagesHeading) !== null && _components$uploadedP !== void 0 ? _components$uploadedP : null, /*#__PURE__*/_react.default.createElement(UploadedPages, {
+  }), /*#__PURE__*/_react.default.createElement("input", getInputProps()), previewsLoading ? (_components$loading = components.loading) !== null && _components$loading !== void 0 ? _components$loading : null : (_components$dropzoneP = components.dropzonePlaceholder) !== null && _components$dropzoneP !== void 0 ? _components$dropzoneP : null), showPreviewAreaWhenEmpty || buildPdfData.pages.length > 0 ? (_components$uploadedP = components.uploadedPagesHeading) !== null && _components$uploadedP !== void 0 ? _components$uploadedP : null : null, showPreviewAreaWhenEmpty || buildPdfData.pages.length > 0 ? /*#__PURE__*/_react.default.createElement(UploadedPages, {
     style: {
       height: previewAreaHeight + 'px',
       padding: "".concat(previewAreaPadding, "px ").concat(previewAreaPadding, "px ").concat(previewAreaPadding - scrollbarHeight, "px ").concat(previewAreaPadding, "px")
@@ -389,11 +413,7 @@ var _default = _ref => {
       color: "#888",
       size: "0.8rem"
     }))))));
-  })), previewsLoading || buildPdfLoading ? /*#__PURE__*/_react.default.createElement(UploadedPagesInteractionBlocker, null) : null), /*#__PURE__*/_react.default.createElement(FinalizeButton, {
-    loading: buildPdfLoading,
-    disabled: buildPdfData.pages.length === 0,
-    onClick: onBuildPdf
-  }));
+  })), previewsLoading || buildPdfLoading ? /*#__PURE__*/_react.default.createElement(UploadedPagesInteractionBlocker, null) : null) : null);
 };
 
 exports.default = _default;
