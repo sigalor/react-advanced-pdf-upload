@@ -272,7 +272,7 @@ export default ({
         const file = acceptedFiles[fileIdx];
         const fileBase64 = await readFileToBase64(file);
 
-        const previews = (await loadPreviews({ file: fileBase64, resolution: previewResolution })).pages;
+        const previews = (await loadPreviews({ file: fileBase64, resolution: previewResolution }))?.pages;
         if (previews) {
           newFiles.push({ pdf: fileBase64, previews });
           for (let pageIdx = 0; pageIdx < previews.length; pageIdx++) {

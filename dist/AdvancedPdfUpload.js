@@ -166,12 +166,14 @@ var _default = _ref => {
       var newPages = [...buildPdfData.pages];
 
       for (var fileIdx = 0; fileIdx < acceptedFiles.length; fileIdx++) {
+        var _yield$loadPreviews;
+
         var file = acceptedFiles[fileIdx];
         var fileBase64 = yield readFileToBase64(file);
-        var previews = (yield loadPreviews({
+        var previews = (_yield$loadPreviews = yield loadPreviews({
           file: fileBase64,
           resolution: previewResolution
-        })).pages;
+        })) === null || _yield$loadPreviews === void 0 ? void 0 : _yield$loadPreviews.pages;
 
         if (previews) {
           newFiles.push({
