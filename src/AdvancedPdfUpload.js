@@ -369,9 +369,9 @@ export default ({
 
   useEffect(() => {
     if (finalizeButton.setDisabled) {
-      finalizeButton.setDisabled(buildPdfData.pages.length === 0);
+      finalizeButton.setDisabled(previewsLoading || buildPdfData.pages.length === 0);
     }
-  }, [finalizeButton.setDisabled, buildPdfData.pages.length]);
+  }, [finalizeButton.setDisabled, previewsLoading, buildPdfData.pages.length]);
 
   return (
     <Wrapper>

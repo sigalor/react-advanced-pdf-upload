@@ -1,3 +1,7 @@
+# 2.1.1 (2022-01-27)
+
+- also disable finalize button while previews are loading
+
 # 2.1.0 (2022-01-27)
 
 - fix: catch errors in calls to loadPreviews and buildPdf

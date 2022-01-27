@@ -156,7 +156,6 @@ var _default = _ref => {
     files: [],
     pages: []
   });
-  var [filename, setFilename] = (0, _react.useState)(defaultFilename);
   var [previewsLoading, setPreviewsLoading] = (0, _react.useState)(false);
   var [buildPdfLoading, setBuildPdfLoading] = (0, _react.useState)(false);
   var [pageIdDragging, setPageIdDragging] = (0, _react.useState)(undefined);
@@ -300,9 +299,9 @@ var _default = _ref => {
   }, [finalizeButton.setLoading, buildPdfLoading]);
   (0, _react.useEffect)(() => {
     if (finalizeButton.setDisabled) {
-      finalizeButton.setDisabled(buildPdfData.pages.length === 0);
+      finalizeButton.setDisabled(previewsLoading || buildPdfData.pages.length === 0);
     }
-  }, [finalizeButton.setDisabled, buildPdfData.pages.length]);
+  }, [finalizeButton.setDisabled, previewsLoading, buildPdfData.pages.length]);
   return /*#__PURE__*/_react.default.createElement(Wrapper, null, /*#__PURE__*/_react.default.createElement(Dropzone, getRootProps({
     className: (previewsLoading || buildPdfLoading ? 'disabled' : '') + (isDragActive ? ' drag-active' : '')
   }), /*#__PURE__*/_react.default.createElement("input", getInputProps()), previewsLoading ? (_components$loading = components.loading) !== null && _components$loading !== void 0 ? _components$loading : null : (_components$dropzoneP = components.dropzonePlaceholder) !== null && _components$dropzoneP !== void 0 ? _components$dropzoneP : null), showPreviewAreaWhenEmpty || buildPdfData.pages.length > 0 ? (_components$uploadedP = components.uploadedPagesHeading) !== null && _components$uploadedP !== void 0 ? _components$uploadedP : null : null, showPreviewAreaWhenEmpty || buildPdfData.pages.length > 0 ? /*#__PURE__*/_react.default.createElement(UploadedPages, {
