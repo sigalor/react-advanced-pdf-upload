@@ -1,3 +1,8 @@
+# 2.1.0 (2022-01-27)
+
+- fix: catch errors in calls to loadPreviews and buildPdf
+- store filenames of uploaded files
+
 # 2.0.1 (2022-01-27)
 
 - fix: handle invalid response from `loadPreviews` without error
