@@ -25,16 +25,16 @@
   ],
   "dependencies": {
     "react-draggable": "^4.4.4",
-    "react-dropzone": "^11.5.1",
+    "react-dropzone": "^11.7.1",
     "react-feather": "^2.0.9",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@babel/cli": "^7.16.8",
-    "@babel/core": "^7.16.10",
+    "@babel/cli": "^7.17.6",
+    "@babel/core": "^7.17.8",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-react": "^7.16.7",
-    "fs-extra": "^10.0.0",
+    "fs-extra": "^10.0.1",
     "rimraf": "^3.0.2"
   },
   "peerDependencies": {
