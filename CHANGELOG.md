@@ -1,3 +1,7 @@
+# 3.0.0 (2022-04-03)
+
+- change semantics of the return value of `buildPdf` (see readme)
+
 # 2.1.1 (2022-01-27)
 
 - also disable finalize button while previews are loading
