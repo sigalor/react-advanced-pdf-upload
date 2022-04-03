@@ -263,6 +263,14 @@ export default ({
   const [pageIdDragging, setPageIdDragging] = useState(undefined);
   const [lastPageIdDragged, setLastPageIdDragged] = useState(undefined);
 
+  const resetState = () => {
+    setBuildPdfData({ files: [], pages: [] });
+    setPreviewsLoading(false);
+    setBuildPdfLoading(false);
+    setPageIdDragging(undefined);
+    setLastPageIdDragged(undefined);
+  };
+
   const onDrop = useCallback(
     async acceptedFiles => {
       setPreviewsLoading(true);
@@ -347,8 +355,10 @@ export default ({
         name,
       });
     } catch (e) {}
-    if (!buildPdfRet) setBuildPdfLoading(false);
-  }, [buildPdf, buildPdfData, buildPdfLoading]);
+
+    if (buildPdfRet === 'resetLoading') setBuildPdfLoading(false);
+    else if (buildPdfRet === 'reset') resetState();
+  }, [buildPdf, buildPdfData, buildPdfLoading, defaultFilename]);
 
   // handle finalize button
   useEffect(() => {
@@ -365,13 +375,13 @@ export default ({
     if (finalizeButton.setLoading) {
       finalizeButton.setLoading(buildPdfLoading);
     }
-  }, [finalizeButton.setLoading, buildPdfLoading]);
+  }, [finalizeButton, finalizeButton.setLoading, buildPdfLoading]);
 
   useEffect(() => {
     if (finalizeButton.setDisabled) {
       finalizeButton.setDisabled(previewsLoading || buildPdfData.pages.length === 0);
     }
-  }, [finalizeButton.setDisabled, previewsLoading, buildPdfData.pages.length]);
+  }, [finalizeButton, finalizeButton.setDisabled, previewsLoading, buildPdfData.pages.length]);
 
   return (
     <Wrapper>

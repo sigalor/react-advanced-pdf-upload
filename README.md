@@ -73,8 +73,10 @@ export default () => {
           if (res && res.status >= 200 && res.status < 299) {
             // do something with the finalized PDF file, e.g. let the user download it
             // the proposed new filename can be found in `data.name`
+            return 'reset';
           } else {
             console.error(res);
+            return 'resetLoading';
           }
         }}
       />
@@ -114,7 +116,7 @@ The `AdvancedPdfUpload` component expects the following parameters, which have b
 | previewSpacing           | integer  | The distance between two page previews in pixels.                                                                                                                                                                                                                                                                                                                | Yes      | 24            |
 | previewControlsHeight    | integer  | The height of the page preview controls (for page numbers and rotation buttons) in pixels.                                                                                                                                                                                                                                                                       | Yes      | 40            |
 | loadPreviews             | function | The callback for loading page previews. Gets an object according to [this schema](https://github.com/sigalor/react-advanced-pdf-upload-backend/blob/main/src/schemas/render-pdf.json) as parameter. Should return the rendered pages according to [this type](https://github.com/sigalor/react-advanced-pdf-upload-backend/blob/main/src/types.ts#L24).          | No       |               |
-| buildPdf                 | function | The callback that is called once the user clicks the finalize button with an object according to [this schema](https://github.com/sigalor/react-advanced-pdf-upload-backend/blob/main/src/schemas/build-pdf.json). Should return `true` when the `AdvancedPdfUpload` component is unmounted immediately afterwards, so that no further state setters are called. | No       |               |
+| buildPdf                 | function | The callback that is called once the user clicks the finalize button with an object according to [this schema](https://github.com/sigalor/react-advanced-pdf-upload-backend/blob/main/src/schemas/build-pdf.json). Should return `"resetLoading"` when after this function is finished, only the `loading` state should be reset, or `"reset"` to reset the entire state. If nothing or something else is returned, nothing is done, i.e. also no further setters are called. | No       |               |
 | showPreviewAreaWhenEmpty | boolean  | Whether the area with the page previews shall be shown (i.e. just take up empty space) even when no pages are there yet.                                                                                                                                                                                                                                         | Yes      | false         |
 | defaultFilename          | string   | When exactly one file was upload, its name is used for the `name` property in the object passed to `buildPdf`. Otherwise this default filename is used.                                                                                                                                                                                                          | Yes      | upload.pdf    |
 
