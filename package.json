@@ -1,6 +1,6 @@
 {
   "name": "react-advanced-pdf-upload",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "This library provides an easy-to-use React component for interactively creating a single PDF file out of several uploaded ones, with the possibility to concatenate, reorder, remove and rotate pages.",
   "private": false,
   "main": "./dist/index.js",
