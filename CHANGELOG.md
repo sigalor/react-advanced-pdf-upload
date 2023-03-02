@@ -1,3 +1,7 @@
+# 3.1.0 (2023-03-02)
+
+- update NPM dependencies
+
 # 3.0.0 (2022-04-03)
 
 - change semantics of the return value of `buildPdf` (see readme)
