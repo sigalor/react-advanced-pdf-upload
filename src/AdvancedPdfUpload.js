@@ -315,7 +315,7 @@ export default ({
   );
 
   const { isDragActive, getRootProps, getInputProps } = useDropzone({
-    accept: 'application/pdf',
+    accept: { 'application/pdf': [] },
     disabled: previewsLoading || buildPdfLoading,
     onDrop,
   });

@@ -3,6 +3,7 @@
   "version": "3.0.0",
   "description": "This library provides an easy-to-use React component for interactively creating a single PDF file out of several uploaded ones, with the possibility to concatenate, reorder, remove and rotate pages.",
   "private": false,
+  "main": "./dist/index.js",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "npx babel ./src --out-dir ./dist --copy-files"
@@ -24,23 +25,22 @@
     "documents"
   ],
   "dependencies": {
-    "react-draggable": "^4.4.4",
-    "react-dropzone": "^11.7.1",
-    "react-feather": "^2.0.9",
-    "uuid": "^8.3.2"
-  },
-  "devDependencies": {
-    "@babel/cli": "^7.17.6",
-    "@babel/core": "^7.17.8",
-    "@babel/preset-env": "^7.16.11",
-    "@babel/preset-react": "^7.16.7",
-    "fs-extra": "^10.0.1",
-    "rimraf": "^3.0.2"
+    "react-draggable": "^4.4.5",
+    "react-dropzone": "^14.2.3",
+    "react-feather": "^2.0.10",
+    "uuid": "^9.0.0"
   },
   "peerDependencies": {
     "react": "^16.14.0 || ^17.0.0",
     "react-dom": "^16.14.0 || ^17.0.0",
     "styled-components": "^5.0.0"
   },
-  "main": "./dist/index.js"
+  "devDependencies": {
+    "@babel/cli": "^7.21.0",
+    "@babel/core": "^7.21.0",
+    "@babel/preset-env": "^7.20.2",
+    "@babel/preset-react": "^7.18.6",
+    "fs-extra": "^11.1.0",
+    "rimraf": "^4.1.3"
+  }
 }

@@ -9,7 +9,5 @@ Object.defineProperty(exports, "default", {
     return _AdvancedPdfUpload.default;
   }
 });
-
 var _AdvancedPdfUpload = _interopRequireDefault(require("./AdvancedPdfUpload"));
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
