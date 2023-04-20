@@ -1,3 +1,7 @@
+# 3.1.1 (2023-04-20)
+
+- add support for React 18 in peerDependencies
+
 # 3.1.0 (2023-03-02)
 
 - update NPM dependencies
